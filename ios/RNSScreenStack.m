@@ -394,13 +394,15 @@
       [_controller popToRootViewControllerAnimated: NO];
       NSMutableArray<UIViewController *> *newPresentedModals = [NSMutableArray arrayWithArray:_presentedModals];
       [newControllers removeObjectsInArray:_presentedModals];
-      __block int completionCounter = 0;
+      // __block int completionCounter = 0;
+      NSMutableArray<NSString *> *completionCounter = [NSMutableArray new];
       if (newControllers.count == 0 && newPresentedModals.count > 0) {
         for(NSUInteger index = 0; index < newPresentedModals.count; index++) {
           [newPresentedModals[index] dismissViewControllerAnimated:NO completion:^{
-            completionCounter = completionCounter + 1;
-            if (completionCounter == newPresentedModals.count) {
-              [self->_controller dismissViewControllerAnimated:YES completion: finish];
+            // completionCounter = completionCounter + 1;
+            [completionCounter addObject:@"completionCounter"];
+            if (completionCounter.count == newPresentedModals.count) {
+              [self->_controller dismissViewControllerAnimated:NO completion: finish];
             }
           }];
         }
