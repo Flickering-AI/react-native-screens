@@ -390,21 +390,17 @@
   if (changeRootController.presentedViewController != nil &&
       [_presentedModals containsObject:changeRootController.presentedViewController]) {
     
-    if (pushControllers.count == 1 && controllers.count == 0 && _presentedModals.count > 0 && _controller.viewControllers.count > 0) {
-      [_controller popToRootViewControllerAnimated: NO];
+    if (controllers.count == 0 && _presentedModals.count > 0 && _controller.viewControllers.count > 0) {
       NSMutableArray<UIViewController *> *newPresentedModals = [NSMutableArray arrayWithArray:_presentedModals];
       [newControllers removeObjectsInArray:_presentedModals];
-      // __block int completionCounter = 0;
-      NSMutableArray<NSString *> *completionCounter = [NSMutableArray new];
       if (newControllers.count == 0 && newPresentedModals.count > 0) {
         for(NSUInteger index = 0; index < newPresentedModals.count; index++) {
-          [newPresentedModals[index] dismissViewControllerAnimated:NO completion:^{
-            // completionCounter = completionCounter + 1;
-            [completionCounter addObject:@"completionCounter"];
-            if (completionCounter.count == newPresentedModals.count) {
+          if (newPresentedModals[index].modalPresentationStyle == UIModalPresentationOverCurrentContext) {
+            [newPresentedModals[index] dismissViewControllerAnimated:NO completion:^{
               [self->_controller dismissViewControllerAnimated:NO completion: finish];
-            }
-          }];
+            }];
+            break;
+          }
         }
       }
       return;
