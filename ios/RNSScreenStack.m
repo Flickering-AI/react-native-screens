@@ -394,16 +394,20 @@
       NSMutableArray<UIViewController *> *newPresentedModals = [NSMutableArray arrayWithArray:_presentedModals];
       [newControllers removeObjectsInArray:_presentedModals];
       if (newControllers.count == 0 && newPresentedModals.count > 0) {
+        bool hasUIModalPresentationOverCurrentContext = false;
         for(NSUInteger index = 0; index < newPresentedModals.count; index++) {
           if (newPresentedModals[index].modalPresentationStyle == UIModalPresentationOverCurrentContext) {
+            hasUIModalPresentationOverCurrentContext = true;
             [newPresentedModals[index] dismissViewControllerAnimated:NO completion:^{
               [self->_controller dismissViewControllerAnimated:NO completion: finish];
             }];
             break;
           }
         }
+        if (hasUIModalPresentationOverCurrentContext) {
+          return;
+        }
       }
-      return;
     }
     
     BOOL shouldAnimate = changeRootIndex == controllers.count &&
