@@ -268,7 +268,7 @@
   }
 }
 
-- (void)setModalViewControllers:(NSArray<UIViewController *> *)controllers
+- (void)setModalViewControllers:(NSArray<UIViewController *> *)controllers withPushControllers: (NSArray<UIViewController *> *)pushControllers
 {
   // prevent re-entry
   if (_updatingModals) {
@@ -389,12 +389,42 @@
 
   if (changeRootController.presentedViewController != nil &&
       [_presentedModals containsObject:changeRootController.presentedViewController]) {
+    
+    if (controllers.count == 0 && _presentedModals.count > 0 && _controller.viewControllers.count > 0) {
+      NSMutableArray<UIViewController *> *newPresentedModals = [NSMutableArray arrayWithArray:_presentedModals];
+      [newControllers removeObjectsInArray:_presentedModals];
+      if (newControllers.count == 0 && newPresentedModals.count > 0) {
+        bool hasUIModalPresentationOverCurrentContext = false;
+        for(NSUInteger index = 0; index < newPresentedModals.count; index++) {
+          if (newPresentedModals[index].modalPresentationStyle == UIModalPresentationOverCurrentContext) {
+            hasUIModalPresentationOverCurrentContext = true;
+            [newPresentedModals[index] dismissViewControllerAnimated:NO completion:^{
+              [self->_controller dismissViewControllerAnimated:NO completion: finish];
+            }];
+            break;
+          }
+        }
+        if (hasUIModalPresentationOverCurrentContext) {
+          return;
+        }
+      }
+    }
+    
     BOOL shouldAnimate = changeRootIndex == controllers.count &&
         [changeRootController.presentedViewController isKindOfClass:[RNSScreen class]] &&
         ((RNSScreenView *)changeRootController.presentedViewController.view).stackAnimation !=
             RNSScreenStackAnimationNone;
     [changeRootController dismissViewControllerAnimated:shouldAnimate completion:finish];
   } else {
+    // fix go back to blank screen when push UIModalPresentationFullScreen with UIModalPresentationOverCurrentContext.
+    NSMutableArray<UIViewController *> *newPresentedModals = [NSMutableArray arrayWithArray:_presentedModals];
+    [newPresentedModals removeObjectsInArray:controllers];
+    if (newControllers.count == 0 && newPresentedModals.count > 0) {
+      for(NSUInteger index = 0; index < newPresentedModals.count; index++) {
+        [newPresentedModals[index] dismissViewControllerAnimated:(index == newPresentedModals.count-1) completion:finish];
+      }
+      return;
+    }
     finish();
   }
 }
@@ -503,7 +533,7 @@
   }
 
   [self setPushViewControllers:pushControllers];
-  [self setModalViewControllers:modalControllers];
+  [self setModalViewControllers:modalControllers withPushControllers: pushControllers];
 }
 
 // By default, the header buttons that are not inside the native hit area
