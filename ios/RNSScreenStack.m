@@ -398,7 +398,7 @@
         for(NSUInteger index = 0; index < newPresentedModals.count; index++) {
           if (newPresentedModals[index].modalPresentationStyle == UIModalPresentationOverCurrentContext) {
             hasUIModalPresentationOverCurrentContext = true;
-            [newPresentedModals[index] dismissViewControllerAnimated:NO completion:^{
+            [newPresentedModals[index] dismissViewControllerAnimated:YES completion:^{
               [self->_controller dismissViewControllerAnimated:NO completion: finish];
             }];
             break;
