@@ -387,44 +387,37 @@
     }
   };
 
-  if (changeRootController.presentedViewController != nil &&
-      [_presentedModals containsObject:changeRootController.presentedViewController]) {
-    
-    if (controllers.count == 0 && _presentedModals.count > 0 && _controller.viewControllers.count > 0) {
-      NSMutableArray<UIViewController *> *newPresentedModals = [NSMutableArray arrayWithArray:_presentedModals];
-      [newControllers removeObjectsInArray:_presentedModals];
-      if (newControllers.count == 0 && newPresentedModals.count > 0) {
-        bool hasUIModalPresentationOverCurrentContext = false;
-        for(NSUInteger index = 0; index < newPresentedModals.count; index++) {
-          if (newPresentedModals[index].modalPresentationStyle == UIModalPresentationOverCurrentContext) {
-            hasUIModalPresentationOverCurrentContext = true;
-            [newPresentedModals[index] dismissViewControllerAnimated:YES completion:^{
-              [self->_controller dismissViewControllerAnimated:NO completion: finish];
-            }];
-            break;
-          }
-        }
-        if (hasUIModalPresentationOverCurrentContext) {
+  NSMutableArray<UIViewController *> *presentedModalsWillDismiss = [NSMutableArray arrayWithArray:_presentedModals];
+  [presentedModalsWillDismiss removeObjectsInArray:controllers];
+  if (presentedModalsWillDismiss.count > 0) {
+    bool hasUIModalPresentationOverCurrentContext = false;
+    for(int index = 0; index < presentedModalsWillDismiss.count; index++) {
+      if (presentedModalsWillDismiss[index].modalPresentationStyle == UIModalPresentationOverCurrentContext || changeRootController.presentedViewController == nil) {
+        hasUIModalPresentationOverCurrentContext = true;
+        if (controllers.count == 0) {
+          [presentedModalsWillDismiss[index] dismissViewControllerAnimated:YES completion:^{
+            [self->_controller dismissViewControllerAnimated:NO completion: finish];
+          }];
           return;
         }
+        break;
       }
     }
-    
+    if (hasUIModalPresentationOverCurrentContext) {
+      for(int index = presentedModalsWillDismiss.count - 1; index >= 0; index--) {
+        [presentedModalsWillDismiss[index] dismissViewControllerAnimated:index == 0 completion:(index == 0) ? finish : nil];
+      }
+      return;
+    }
+  }
+  if (changeRootController.presentedViewController != nil &&
+      [_presentedModals containsObject:changeRootController.presentedViewController]) {
     BOOL shouldAnimate = changeRootIndex == controllers.count &&
         [changeRootController.presentedViewController isKindOfClass:[RNSScreen class]] &&
         ((RNSScreenView *)changeRootController.presentedViewController.view).stackAnimation !=
             RNSScreenStackAnimationNone;
     [changeRootController dismissViewControllerAnimated:shouldAnimate completion:finish];
   } else {
-    // fix go back to blank screen when push UIModalPresentationFullScreen with UIModalPresentationOverCurrentContext.
-    NSMutableArray<UIViewController *> *newPresentedModals = [NSMutableArray arrayWithArray:_presentedModals];
-    [newPresentedModals removeObjectsInArray:controllers];
-    if (newControllers.count == 0 && newPresentedModals.count > 0) {
-      for(NSUInteger index = 0; index < newPresentedModals.count; index++) {
-        [newPresentedModals[index] dismissViewControllerAnimated:(index == newPresentedModals.count-1) completion:finish];
-      }
-      return;
-    }
     finish();
   }
 }
