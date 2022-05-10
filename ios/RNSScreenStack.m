@@ -396,7 +396,11 @@
         hasUIModalPresentationOverCurrentContext = true;
         if (controllers.count == 0) {
           [presentedModalsWillDismiss[index] dismissViewControllerAnimated:YES completion:^{
-            [self->_controller dismissViewControllerAnimated:NO completion: finish];
+            if ([self->_controller presentedViewController]) {
+              [self->_controller dismissViewControllerAnimated:NO completion: finish];
+              return;
+            }
+            finish();
           }];
           return;
         }
