@@ -1020,12 +1020,7 @@ Class<RCTComponentViewProtocol> RNSScreenCls(void)
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations
 {
-  UIViewController *vc = [self findChildVCForConfigAndTrait:RNSWindowTraitOrientation includingModals:YES];
-
-  if ([vc isKindOfClass:[RNSScreen class]]) {
-    return ((RNSScreen *)vc).screenView.screenOrientation;
-  }
-  return UIInterfaceOrientationMaskAllButUpsideDown;
+  return ((RNSScreenView *)self.view).screenOrientation ?: UIInterfaceOrientationMaskAllButUpsideDown;
 }
 
 - (UIViewController *)childViewControllerForHomeIndicatorAutoHidden
