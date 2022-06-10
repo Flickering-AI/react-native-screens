@@ -416,9 +416,11 @@
     // fix go back to blank screen when push UIModalPresentationFullScreen with UIModalPresentationOverCurrentContext.
     NSMutableArray<UIViewController *> *newPresentedModals = [NSMutableArray arrayWithArray:_presentedModals];
     [newPresentedModals removeObjectsInArray:controllers];
-    if (newControllers.count == 0 && newPresentedModals.count > 0) {
-      for(NSUInteger index = 0; index < newPresentedModals.count; index++) {
-        [newPresentedModals[index] dismissViewControllerAnimated:(index == newPresentedModals.count-1) completion:finish];
+    if (newPresentedModals.count > 0) {
+      for(int index = newPresentedModals.count - 1; index >= 0; index--) {
+        BOOL shouldAnimate = [newPresentedModals[index] isKindOfClass:[RNSScreen class]] &&
+        ((RNSScreenView *)newPresentedModals[index].view).stackAnimation != RNSScreenStackAnimationNone && index == newPresentedModals.count-1;
+        [newPresentedModals[index] dismissViewControllerAnimated:shouldAnimate completion: index == 0 ? finish : nil];
       }
       return;
     }
